@@ -2,21 +2,42 @@ package main
 
 import (
 	"fmt"
-	"password_generator/generator"
+	"os"
+	"p-gen/generator"
+	utils "p-gen/helper"
+
+	flag "github.com/ogier/pflag"
 )
 
-var message1 = "Password generator starting..."
+var pLength int
+var iCaps bool
+var iDigits bool
+var iSpecialChars bool
+
+func init() {
+	flag.IntVar(&pLength, "length", 0, "Password length (between 8 and 20)")
+	flag.BoolVarP(&iCaps, "caps", "c", false, "Can include capital letters?")
+	flag.BoolVarP(&iSpecialChars, "spec-chars", "s", false, "Can include special characters?")
+	flag.BoolVarP(&iDigits, "digits", "d", false, "Can include digits 0 - 9 ?")
+
+}
 
 func main() {
-	fmt.Println(message1)
+	// parse flags so that the rest of the app can use them
+	flag.Parse()
 
-	// get input from user
-	passwordLength, includeCaps, includeDigits, includeSpecialChars := generator.GetUserInput()
+	if flag.NFlag() == 0 {
+		fmt.Printf("Usage: %s\n", os.Args[0])
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 
-	fmt.Println(passwordLength, includeCaps, includeDigits, includeSpecialChars)
+	if !utils.IsLengthValid(pLength, 8, 20) {
+		fmt.Println("Password length must be between 8 and 20")
+		os.Exit(1)
+	}
 
-	generator := generator.PasswordGenerator{PLength: passwordLength, IsCaps: includeCaps, IsDigits: includeDigits, IsSpecialChars: includeSpecialChars}
+	generator := generator.PasswordGenerator{PLength: pLength, IsCaps: iCaps, IsDigits: iDigits, IsSpecialChars: iSpecialChars}
 	password := generator.Generate()
-
 	fmt.Println(password)
 }
